@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.8.21"
-idea = "222.4167.29"
+idea = "232.4652"
 j2k = "222-1.8.21-release-380-IJ4167.29"
 
 [libraries]
