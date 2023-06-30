@@ -9,7 +9,7 @@ j2k-old = { module = "org.jetbrains.kotlin:j2k-old", version.ref = "j2k" }
 
 kotlin-core = { module = "org.jetbrains.kotlin:core", version.ref = "j2k"}
 kotlin-base-psi = { module = "org.jetbrains.kotlin:base-psi", version.ref = "j2k"}
-kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version = "1.8.21" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version = "1.8.22" }
 
 java = { module = "com.jetbrains.intellij.java:java-psi", version.ref = "idea" }
 
