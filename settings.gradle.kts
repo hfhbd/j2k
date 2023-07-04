@@ -32,3 +32,4 @@ include(":j2k-core")
 include(":j2k-cli")
 
 include(":j2k-intellij-env")
+include(":j2k-kotlin-psi")

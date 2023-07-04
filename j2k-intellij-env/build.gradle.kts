@@ -8,9 +8,13 @@ dependencies {
     shadow(libs.j2k.new)
     shadow(libs.j2k.old)
     shadow(libs.java)
+    shadow(libs.java.impl)
     shadow(libs.kotlin.core)
     shadow(libs.kotlin.base.psi)
-    shadow(libs.kotlin.compiler)
+    shadow(libs.intellij.editor)
+    shadow(libs.intellij.testFramework) {
+        isTransitive = false
+    }
 }
 
 configurations.shadow {
@@ -34,6 +38,8 @@ tasks.shadowJar {
 
     include("org/intellij/**")
     include("com/intellij/**")
+    include("org/jetbrains/kotlin/idea/compiler/configuration/**")
+
     include("org/picocontainer/**")
     include("it/unimi/**")
     include("org/jdom/**")

@@ -9,17 +9,22 @@ j2k-old = { module = "org.jetbrains.kotlin:j2k-old", version.ref = "j2k" }
 
 kotlin-core = { module = "org.jetbrains.kotlin:core", version.ref = "j2k"}
 kotlin-base-psi = { module = "org.jetbrains.kotlin:base-psi", version.ref = "j2k"}
-kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version = "1.8.21" }
+kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version = "1.8.21" }
 
 java = { module = "com.jetbrains.intellij.java:java-psi", version.ref = "idea" }
+java-impl = { module = "com.jetbrains.intellij.java:java-psi-impl", version.ref = "idea" }
 
 idea-core-impl = { module = "com.jetbrains.intellij.platform:core-impl", version.ref = "idea" }
 idea-project-model-impl = { module = "com.jetbrains.intellij.platform:project-model-impl", version.ref = "idea" }
 idea-analysis-impl = { module = "com.jetbrains.intellij.platform:analysis-impl", version.ref = "idea" }
 idea-indexing-impl = { module = "com.jetbrains.intellij.platform:indexing-impl", version.ref = "idea" }
+idea-util = { module = "com.jetbrains.intellij.platform:util", version.ref = "idea" }
+intellij-testFramework = { module = "com.jetbrains.intellij.platform:test-framework", version.ref = "idea" }
+intellij-lang-impl = { module = "com.jetbrains.intellij.platform:lang-impl", version.ref = "idea" }
+intellij-editor = { module = "com.jetbrains.intellij.platform:editor", version.ref = "idea" }
 
 [bundles]
-idea = ["idea-core-impl", "idea-project-model-impl", "idea-analysis-impl", "idea-indexing-impl"]
+idea = ["idea-core-impl", "idea-project-model-impl", "idea-analysis-impl", "idea-indexing-impl", "intellij-lang-impl"]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -1,6 +1,4 @@
-import org.jetbrains.kotlin.j2k.ConverterContext
-import org.jetbrains.kotlin.j2k.JKPostProcessingTarget
-import org.jetbrains.kotlin.j2k.PostProcessor
+import com.intellij.pom.java.LanguageLevel
 import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.absolutePathString
@@ -10,9 +8,10 @@ import kotlin.test.assertEquals
 class J2KTest {
     @Test
     fun testing() {
-        val files = Files.createTempDirectory("j2k").toFile()
-        val myJavaClass = File(files, "MyJavaClass.java")
-        myJavaClass.writeText(
+        val myJavaClass = JavaFile(
+            "MyJavaClass.java",
+            LanguageLevel.JDK_1_8,
+            //language=java
             """
                 public class MyJavaClass {
                   public void testing() {
@@ -27,24 +26,12 @@ class J2KTest {
         System.setProperty("idea.home.path", tmp.absolutePathString())
         System.setProperty("java.awt.headless", "true")
         System.setProperty("psi.sleep.in.validity.check", "1")
+        //System.setProperty("kotlin.scripting.fs.roots.storage.enabled", "false")
         
-        val env = J2KEnvironment(listOf(myJavaClass))
-        val result = env.convert(object :PostProcessor {
-            override val phasesCount: Int = 1
+        val env = J2KConverter()
 
-            override fun doAdditionalProcessing(
-                target: JKPostProcessingTarget,
-                converterContext: ConverterContext?,
-                onPhaseChanged: ((Int, String) -> Unit)?
-            ) {
-                
-            }
+        env.convert(listOf(myJavaClass))
 
-            override fun insertImport(file: org.jetbrains.kotlin.psi.KtFile, fqName: org.jetbrains.kotlin.name.FqName) {
-                
-            }
-        })
-        assertEquals("", myJavaClass.readText())
-        assertEquals(emptyList(), result.results)
+        assertEquals("", myJavaClass.result)
     }
 }
