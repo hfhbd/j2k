@@ -2,6 +2,7 @@ import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.core.CoreProjectEnvironment
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.MetaLanguage
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.java.JavaParserDefinition
 import com.intellij.mock.MockEditorFactory
 import com.intellij.openapi.diagnostic.DefaultLogger
@@ -19,10 +20,10 @@ import com.intellij.openapi.roots.impl.*
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
+import com.intellij.psi.impl.PsiFileFactoryImpl
 import com.intellij.psi.impl.smartPointers.SmartPointerAnchorProvider
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiUtil.FILE_LANGUAGE_LEVEL_KEY
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.registerExtension
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProviderHelper
@@ -101,6 +102,7 @@ private object FakeScriptConfigurationManager : ScriptConfigurationManager {
 
     override fun getFirstScriptsSdk(): Sdk? = null
 
+    @Deprecated("Use getScriptClasspath(KtFile) instead", ReplaceWith("emptyList()"))
     override fun getScriptClasspath(file: VirtualFile): List<VirtualFile> = emptyList()
 
     override fun getScriptClasspath(file: KtFile): List<VirtualFile> = emptyList()
@@ -150,8 +152,8 @@ public class J2KConverter {
             ExtensionPoint.Kind.INTERFACE
         )
         DirectoryIndexExcludePolicy.EP_NAME.getPoint(projectEnvironment.project).registerExtension(
-                object : DirectoryIndexExcludePolicy {}, projectEnvironment.parentDisposable
-            )
+            object : DirectoryIndexExcludePolicy {}, projectEnvironment.parentDisposable
+        )
 
         projectEnvironment.project.extensionArea.registerExtensionPoint(
             KotlinBinaryExtension.EP_NAME.name,
@@ -168,8 +170,8 @@ public class J2KConverter {
             ExtensionPoint.Kind.BEAN_CLASS
         )
         ScriptChangeListener.LISTENER.getPoint(projectEnvironment.project).registerExtension(
-                DefaultScriptChangeListener(projectEnvironment.project), projectEnvironment.parentDisposable
-            )
+            DefaultScriptChangeListener(projectEnvironment.project), projectEnvironment.parentDisposable
+        )
 
         projectEnvironment.project.registerService(KotlinPluginDisposable::class.java)
 
@@ -195,17 +197,21 @@ public class J2KConverter {
     }
 
     public fun convert(
-        files: List<JavaFile>,
+        files: Iterable<JavaFile>,
     ) {
         val psiFileFactory = PsiFileFactory.getInstance(projectEnvironment.project)
-        val psiManager = PsiManager.getInstance(projectEnvironment.project)
-        val javaParser = JavaParserDefinition()
+        val eventSystemEnabled = false
+        val markAsCopy = false
+
         val fileList = files.map {
-            val vFile = LightVirtualFile(it.name, it.content)
-            val fileProvider = SingleRootFileViewProvider(psiManager, vFile, false, JavaFileType.INSTANCE)
-            val javaFile = javaParser.createFile(fileProvider) as PsiJavaFile
+            val javaFile = psiFileFactory.createFileFromText(
+                it.name, JavaLanguage.INSTANCE, it.content, eventSystemEnabled, markAsCopy
+            )
+
             javaFile.putUserData(FILE_LANGUAGE_LEVEL_KEY, it.languageLevel)
-            it to javaFile
+            PsiFileFactoryImpl.markGenerated(javaFile)
+
+            it to javaFile as PsiJavaFile
         }
 
         val results = converter.elementsToKotlin(
@@ -234,11 +240,6 @@ private object EmptyPostProcessor : WithProgressProcessor {
         fractionPortion: Double, inputItems: Iterable<TInputItem>, processItem: (TInputItem) -> TOutputItem
     ): List<TOutputItem> = inputItems.map(processItem)
 
-    override fun updateState(phase: Int, subPhase: Int, subPhaseCount: Int, fileIndex: Int?, description: String) {
-
-    }
-
-    override fun updateState(fileIndex: Int?, phase: Int, description: String) {
-
-    }
+    override fun updateState(phase: Int, subPhase: Int, subPhaseCount: Int, fileIndex: Int?, description: String) {}
+    override fun updateState(fileIndex: Int?, phase: Int, description: String) {}
 }

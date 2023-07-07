@@ -1,5 +1,4 @@
 import com.intellij.pom.java.LanguageLevel
-import java.io.File
 import java.nio.file.Files
 import kotlin.io.path.absolutePathString
 import kotlin.test.Test
