@@ -1,14 +1,14 @@
-pluginManagement { 
+pluginManagement {
     includeBuild("build-logic")
     repositories {
         mavenCentral()
-        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
         gradlePluginPortal()
     }
 }
 
 plugins {
     id("MyRepos")
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
     id("com.gradle.enterprise") version "3.15"
 }
 

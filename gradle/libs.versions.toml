@@ -9,10 +9,13 @@ j2k-old = { module = "org.jetbrains.kotlin:j2k-old", version.ref = "j2k" }
 
 kotlin-core = { module = "org.jetbrains.kotlin:core", version.ref = "j2k"}
 kotlin-base-psi = { module = "org.jetbrains.kotlin:base-psi", version.ref = "j2k"}
+kotlin-base-indices = { module = "org.jetbrains.kotlin:base-indices", version.ref = "j2k"}
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
 
-java = { module = "com.jetbrains.intellij.java:java-psi", version.ref = "idea" }
-java-impl = { module = "com.jetbrains.intellij.java:java-psi-impl", version.ref = "idea" }
+java-impl = { module = "com.jetbrains.intellij.java:java-impl", version.ref = "idea" }
+java-analysis-impl = { module = "com.jetbrains.intellij.java:java-analysis-impl", version.ref = "idea" }
+java-psi = { module = "com.jetbrains.intellij.java:java-psi", version.ref = "idea" }
+java-psi-impl = { module = "com.jetbrains.intellij.java:java-psi-impl", version.ref = "idea" }
 
 idea-core-impl = { module = "com.jetbrains.intellij.platform:core-impl", version.ref = "idea" }
 idea-project-model-impl = { module = "com.jetbrains.intellij.platform:project-model-impl", version.ref = "idea" }

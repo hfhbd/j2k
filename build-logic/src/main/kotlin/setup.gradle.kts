@@ -10,7 +10,7 @@ publishing {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
     explicitApi()
     target {
         compilations.configureEach {
