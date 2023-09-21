@@ -1,89 +1,117 @@
-import com.intellij.core.CoreApplicationEnvironment
-import com.intellij.core.CoreProjectEnvironment
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.lang.MetaLanguage
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.lang.java.JavaParserDefinition
-import com.intellij.mock.MockEditorFactory
-import com.intellij.openapi.diagnostic.DefaultLogger
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.ExtensionPoint
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.module.EmptyModuleManager
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.impl.ProjectManagerExImpl
-import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
-import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.roots.impl.*
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.core.*
+import com.intellij.ide.highlighter.*
+import com.intellij.ide.plugins.*
+import com.intellij.lang.*
+import com.intellij.lang.java.*
+import com.intellij.lang.java.parser.*
+import com.intellij.openapi.application.*
+import com.intellij.openapi.extensions.*
+import com.intellij.openapi.projectRoots.*
+import com.intellij.openapi.util.*
+import com.intellij.openapi.vfs.*
+import com.intellij.openapi.vfs.newvfs.*
+import com.intellij.openapi.vfs.newvfs.persistent.*
 import com.intellij.psi.*
-import com.intellij.psi.impl.PsiFileFactoryImpl
-import com.intellij.psi.impl.smartPointers.SmartPointerAnchorProvider
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiUtil.FILE_LANGUAGE_LEVEL_KEY
-import com.intellij.testFramework.registerExtension
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProviderHelper
-import org.jetbrains.kotlin.idea.compiler.configuration.*
-import org.jetbrains.kotlin.idea.core.KotlinPluginDisposable
-import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
-import org.jetbrains.kotlin.idea.core.script.configuration.listener.DefaultScriptChangeListener
-import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
-import org.jetbrains.kotlin.idea.util.JavaClassBinary
-import org.jetbrains.kotlin.idea.util.KotlinBinaryExtension
+import com.intellij.psi.search.*
+import com.intellij.psi.stubs.*
+import com.intellij.psi.util.PsiUtil.*
+import com.intellij.util.indexing.*
+import org.jetbrains.kotlin.cli.jvm.compiler.*
+import org.jetbrains.kotlin.idea.*
+import org.jetbrains.kotlin.idea.core.script.*
+import org.jetbrains.kotlin.idea.stubindex.*
 import org.jetbrains.kotlin.j2k.*
-import org.jetbrains.kotlin.nj2k.NewJavaToKotlinConverter
+import org.jetbrains.kotlin.nj2k.*
 import org.jetbrains.kotlin.nj2k.NewJavaToKotlinConverter.Companion.addImports
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.scripting.resolve.ScriptCompilationConfigurationWrapper
+import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.scripting.resolve.*
 
-private object ApplicationEnvironment {
-    private val logger = object : DefaultLogger("") {
-        override fun warn(message: String?, t: Throwable?) = Unit
-        override fun error(message: Any?) = Unit
-    }
+private class ApplicationEnvironment {
+    val disposer = Disposer.newDisposable()
 
-    val coreApplicationEnvironment: CoreApplicationEnvironment by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-        CoreApplicationEnvironment(Disposer.newDisposable()).apply {
-            Logger.setFactory { logger }
+    val kotlinCoreApplicationEnvironment = KotlinCoreApplicationEnvironment.create(
+        parentDisposable = disposer, unitTestMode = false
+    ).apply {
+        registerApplicationService(PluginUtil::class.java, PluginUtilImpl())
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            FileBasedIndexExtension.EXTENSION_POINT_NAME, FileBasedIndexExtension::class.java
+        )
 
-            registerApplicationService(ProjectManager::class.java, ProjectManagerExImpl())
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            StubIndexExtension.EP_NAME, StubIndexExtension::class.java
+        )
 
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(),
-                MetaLanguage.EP_NAME,
-                MetaLanguage::class.java,
-            )
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(),
-                SmartPointerAnchorProvider.EP_NAME,
-                SmartPointerAnchorProvider::class.java,
-            )
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(),
-                AdditionalLibraryRootsProvider.EP_NAME,
-                AdditionalLibraryRootsProvider::class.java
-            )
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(),
-                DirectoryIndexExcludePolicy.EP_NAME.name,
-                DirectoryIndexExcludePolicy::class.java
-            )
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(), KotlinBinaryExtension.EP_NAME, KotlinBinaryExtension::class.java
-            )
+        application.extensionArea.getExtensionPoint(
+            StubIndexExtension.EP_NAME
+        ).registerExtension(
+            KotlinFullClassNameIndex, parentDisposable
+        )
+        registerApplicationService(StubIndex::class.java, StubIndexImpl())
 
-            CoreApplicationEnvironment.registerExtensionPoint(
-                Extensions.getRootArea(), ScriptChangeListener.LISTENER.name, ScriptChangeListener::class.java
-            )
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            PersistentFsConnectionListener.EP_NAME, PersistentFsConnectionListener::class.java
+        )
+        registerApplicationService(ManagingFS::class.java, PersistentFSImpl())
 
-            registerApplicationService(
-                com.intellij.openapi.editor.EditorFactory::class.java, MockEditorFactory()
-            )
-        }
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            FileBasedIndexInfrastructureExtension.EP_NAME, FileBasedIndexInfrastructureExtension::class.java
+        )
+        registerApplicationService(FileBasedIndex::class.java, FileBasedIndexImpl())
+        System.setProperty("indexing.separate.applying.values.from.counting", "false")
+        System.setProperty("indexing.separate.applying.values.from.counting.for.content.independent.indexes", "false")
+
+        ApplicationManager.setApplication(application, {
+            CoreFileTypeRegistry().apply { registerFileType(JavaFileType.INSTANCE, "java") }
+        }, parentDisposable)/*
+        //
+*//*
+        registerApplicationService(ProjectManager::class.java, ProjectManagerExImpl())
+
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            MetaLanguage.EP_NAME,
+            MetaLanguage::class.java,
+        )
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            SmartPointerAnchorProvider.EP_NAME,
+            SmartPointerAnchorProvider::class.java,
+        )
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            AdditionalLibraryRootsProvider.EP_NAME,
+            AdditionalLibraryRootsProvider::class.java
+        )
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            KotlinBinaryExtension.EP_NAME, KotlinBinaryExtension::class.java
+        )
+
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            PsiAugmentProvider.EP_NAME, PsiAugmentProvider::class.java,
+        )
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            SuperMethodsSearch.EP_NAME,
+            com.intellij.util.QueryExecutor::class.java,
+        )
+
+        CoreApplicationEnvironment.registerApplicationExtensionPoint(
+            StubIndexExtension.EP_NAME,
+            StubIndexExtension::class.java
+        )
+        registerApplicationService(StubIndex::class.java, StubIndexImpl())
+
+        CoreApplicationEnvironment.registerApplicationDynamicExtensionPoint(
+            KotlinFullClassNameIndex.KEY.name,
+            KotlinFullClassNameIndex::class.java
+        )
+        addExtension(
+            ExtensionPointName(KotlinFullClassNameIndex.KEY.name),
+            KotlinFullClassNameIndex
+        )
+
+        registerApplicationService(
+            com.intellij.openapi.editor.EditorFactory::class.java, MockEditorFactory()
+        )
+        addExplicitExtension(LanguageASTFactory.INSTANCE, JavaLanguage.INSTANCE, JavaASTFactory())
+
+         */
     }
 }
 
@@ -122,15 +150,25 @@ private object FakeScriptConfigurationManager : ScriptConfigurationManager {
     override fun updateScriptDefinitionReferences() {}
 }
 
-public class J2KConverter {
-    private val projectEnvironment = CoreProjectEnvironment(
-        ApplicationEnvironment.coreApplicationEnvironment.parentDisposable,
-        ApplicationEnvironment.coreApplicationEnvironment,
+public class J2KConverter : AutoCloseable {
+    private val env = ApplicationEnvironment()
+    private val kotlinProjectEnv = KotlinCoreProjectEnvironment(
+        env.kotlinCoreApplicationEnvironment.parentDisposable,
+        env.kotlinCoreApplicationEnvironment,
     )
 
     private val converter: NewJavaToKotlinConverter
 
     init {
+        kotlinProjectEnv.project.extensionArea.registerExtensionPoint(
+            PsiElementFinder.EP.name,
+            PsiElementFinder::class.qualifiedName!!,
+            ExtensionPoint.Kind.INTERFACE,
+        )
+        kotlinProjectEnv.environment.registerParserDefinition(JavaParserDefinition())
+        // LanguageParserDefinitions.INSTANCE.addExplicitExtension(KotlinLanguage.INSTANCE, KotlinParserDefinition())
+
+        /*
         projectEnvironment.registerProjectComponent(
             ProjectRootManager::class.java,
             ProjectRootManagerImpl(projectEnvironment.project),
@@ -143,16 +181,45 @@ public class J2KConverter {
             ProjectRootManager::class.java, ProjectRootManagerImpl(projectEnvironment.project)
         )
 
-        projectEnvironment.environment.registerFileType(JavaFileType.INSTANCE, "java")
-        projectEnvironment.environment.registerParserDefinition(JavaParserDefinition())
+        projectEnvironment.project.registerService(
+            JavaFileManager::class.java,
+            CoreJavaFileManager(projectEnvironment.project.service())
+        )
+
+
+        projectEnvironment.project.extensionArea.registerExtensionPoint(
+            TreeGenerator.EP_NAME.name,
+            TreeGenerator::class.qualifiedName!!,
+            ExtensionPoint.Kind.INTERFACE
+        )
+        projectEnvironment.project.registerExtension(
+            TreeGenerator.EP_NAME,
+            JavaTreeGenerator(),
+            projectEnvironment.parentDisposable
+        )
 
         projectEnvironment.project.extensionArea.registerExtensionPoint(
             DirectoryIndexExcludePolicy.EP_NAME.name,
             DirectoryIndexExcludePolicy::class.qualifiedName!!,
             ExtensionPoint.Kind.INTERFACE
         )
-        DirectoryIndexExcludePolicy.EP_NAME.getPoint(projectEnvironment.project).registerExtension(
-            object : DirectoryIndexExcludePolicy {}, projectEnvironment.parentDisposable
+        projectEnvironment.project.registerExtension(
+            DirectoryIndexExcludePolicy.EP_NAME,
+            object : DirectoryIndexExcludePolicy {},
+            projectEnvironment.parentDisposable
+        )
+
+        projectEnvironment.project.registerService(
+            PsiElementFactory::class.java,
+            PsiElementFactoryImpl(projectEnvironment.project)
+        )
+        projectEnvironment.project.registerService(
+            com.intellij.psi.JvmPsiConversionHelper::class.java,
+            JvmPsiConversionHelperImpl()
+        )
+        projectEnvironment.project.registerService(
+            com.intellij.psi.JavaPsiFacade::class.java,
+            JavaPsiFacadeImpl(projectEnvironment.project)
         )
 
         projectEnvironment.project.extensionArea.registerExtensionPoint(
@@ -169,8 +236,10 @@ public class J2KConverter {
             ScriptChangeListener::class.qualifiedName!!,
             ExtensionPoint.Kind.BEAN_CLASS
         )
-        ScriptChangeListener.LISTENER.getPoint(projectEnvironment.project).registerExtension(
-            DefaultScriptChangeListener(projectEnvironment.project), projectEnvironment.parentDisposable
+        projectEnvironment.project.registerExtension(
+            ScriptChangeListener.LISTENER,
+            DefaultScriptChangeListener(projectEnvironment.project),
+            projectEnvironment.parentDisposable
         )
 
         projectEnvironment.project.registerService(KotlinPluginDisposable::class.java)
@@ -188,8 +257,17 @@ public class J2KConverter {
             KotlinCommonCompilerArgumentsHolder(projectEnvironment.project)
         )
 
+        projectEnvironment.project.registerService(
+            com.intellij.psi.PsiResolveHelper::class.java,
+            PsiResolveHelperImpl(projectEnvironment.project)
+        )
+        projectEnvironment.project.registerService(
+            JavaResolveCache::class.java,
+            JavaResolveCache(projectEnvironment.project)
+        )
+*/
         converter = NewJavaToKotlinConverter(
-            project = projectEnvironment.project,
+            project = kotlinProjectEnv.project,
             targetModule = null,
             settings = ConverterSettings.defaultSettings,
             oldConverterServices = EmptyJavaToKotlinServices
@@ -199,20 +277,27 @@ public class J2KConverter {
     public fun convert(
         files: Iterable<JavaFile>,
     ) {
-        val psiFileFactory = PsiFileFactory.getInstance(projectEnvironment.project)
+        val psiFileFactory = PsiFileFactory.getInstance(kotlinProjectEnv.project)
         val eventSystemEnabled = false
         val markAsCopy = false
 
         val fileList = files.map {
             val javaFile = psiFileFactory.createFileFromText(
-                it.name, JavaLanguage.INSTANCE, it.content, eventSystemEnabled, markAsCopy
+                it.fileName, JavaLanguage.INSTANCE, it.content, eventSystemEnabled, markAsCopy
             )
 
             javaFile.putUserData(FILE_LANGUAGE_LEVEL_KEY, it.languageLevel)
-            PsiFileFactoryImpl.markGenerated(javaFile)
+
+            val builder: PsiBuilder = PsiBuilderFactory.getInstance().createBuilder(
+                kotlinProjectEnv.project, JavaParserDefinition.createLexer(it.languageLevel), javaFile.node
+            )
+            JavaParserUtil.setLanguageLevel(builder, it.languageLevel)
 
             it to javaFile as PsiJavaFile
         }
+
+        val index = FileBasedIndex.getInstance() as FileBasedIndexEx
+        index.loadIndexes()
 
         val results = converter.elementsToKotlin(
             fileList.map { it.second }, EmptyPostProcessor, null
@@ -230,6 +315,10 @@ public class J2KConverter {
                 javaFile.result = ktFile.text
             }
         }
+    }
+
+    override fun close() {
+        Disposer.dispose(env.disposer)
     }
 }
 

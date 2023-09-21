@@ -1,10 +1,14 @@
 import com.intellij.pom.java.LanguageLevel
+import org.intellij.lang.annotations.Language
 
 public class JavaFile(
-    public val name: String,
+    name: String,
+    packageName: String,
     public val languageLevel: LanguageLevel,
-    public val content: CharSequence
+    @Language("java") public val content: CharSequence
 ) {
-    public lateinit var result: String
+    public val fileName: String = packageName.replace(".", "/") + "/$name.java"
+
+    public var result: String? = null
         internal set
 }

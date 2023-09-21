@@ -7,10 +7,13 @@ dependencies {
     shadow(libs.bundles.idea)
     shadow(libs.j2k.new)
     shadow(libs.j2k.old)
-    shadow(libs.java)
     shadow(libs.java.impl)
+    shadow(libs.java.analysis.impl)
+    shadow(libs.java.psi)
+    shadow(libs.java.psi.impl)
     shadow(libs.kotlin.core)
     shadow(libs.kotlin.base.psi)
+    shadow(libs.kotlin.base.indices)
     shadow(libs.intellij.editor)
     shadow(libs.intellij.testFramework) {
         isTransitive = false
@@ -38,6 +41,7 @@ tasks.shadowJar {
 
     include("org/intellij/**")
     include("com/intellij/**")
+    include("org/intellij/kotlin/idea/**")
     include("org/jetbrains/kotlin/idea/compiler/configuration/**")
 
     include("org/picocontainer/**")
