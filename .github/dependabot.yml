@@ -3,9 +3,6 @@ registries:
   maven-central:
     type: maven-repository
     url: https://repo.maven.apache.org/maven2
-  google:
-    type: maven-repository
-    url: https://dl.google.com/dl/android/maven2
   gradle:
     type: maven-repository
     url: https://plugins.gradle.org/m2
@@ -15,9 +12,12 @@ registries:
   intellij-deps:
     type: maven-repository
     url: https://cache-redirector.jetbrains.com/intellij-dependencies
-  kotlin-ide:
+  kotlin-ide-deps:
     type: maven-repository
-    url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide-plugin-dependencies/
+    url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide
+  kotlin-ide-deps:
+    type: maven-repository
+    url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide-plugin-dependencies
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -34,8 +34,8 @@ updates:
     rebase-strategy: "disabled"
     registries:
       - maven-central
-      - google
       - gradle
       - intellij
       - intellij-deps
       - kotlin-ide
+      - kotlin-ide-deps
