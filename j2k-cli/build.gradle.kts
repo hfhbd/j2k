@@ -7,5 +7,3 @@ dependencies {
 
     testImplementation(kotlin("test"))
 }
-
-kotlin.jvmToolchain(17)
