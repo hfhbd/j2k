@@ -51,10 +51,7 @@ import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesModificationTracker
 import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
 import org.jetbrains.kotlin.idea.facet.KotlinFacetSettingsProviderImpl
-import org.jetbrains.kotlin.idea.stubindex.KotlinClassShortNameIndex
-import org.jetbrains.kotlin.idea.stubindex.KotlinFileFacadeShortNameIndex
-import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.idea.stubindex.KotlinTopLevelTypeAliasFqNameIndex
+import org.jetbrains.kotlin.idea.stubindex.*
 import org.jetbrains.kotlin.j2k.ConverterSettings
 import org.jetbrains.kotlin.j2k.EmptyJavaToKotlinServices
 import org.jetbrains.kotlin.j2k.JKMultipleFilesPostProcessingTarget
@@ -112,11 +109,16 @@ public class J2KConverter : AutoCloseable {
             application.extensionArea.getExtensionPoint<StubIndexExtension<*, *>>(
                 StubIndexExtension.EP_NAME
             ).apply {
+                registerExtension(KotlinAnnotationsIndex, parentDisposable)
+                registerExtension(KotlinClassShortNameIndex, parentDisposable)
+                registerExtension(KotlinExactPackagesIndex, parentDisposable)
+                registerExtension(KotlinFileFacadeClassByPackageIndex, parentDisposable)
+                registerExtension(KotlinFileFacadeFqNameIndex, parentDisposable)
+                registerExtension(KotlinFileFacadeShortNameIndex, parentDisposable)
                 registerExtension(KotlinFullClassNameIndex, parentDisposable)
                 registerExtension(KotlinTopLevelTypeAliasFqNameIndex, parentDisposable)
                 registerExtension(JavaFullClassNameIndex(), parentDisposable)
-                registerExtension(KotlinClassShortNameIndex, parentDisposable)
-                registerExtension(KotlinFileFacadeShortNameIndex, parentDisposable)
+                registerExtension(KotlinTopLevelClassByPackageIndex, parentDisposable)
             }
             registerApplicationService(StubIndex::class.java, StubIndexImpl())
 
@@ -280,6 +282,7 @@ public class J2KConverter : AutoCloseable {
         index.loadIndexes()
         RebuildStatus.registerIndex(StubUpdatingIndex.INDEX_ID)
         initializeStubIndexes()
+        index.waitUntilIndicesAreInitialized()
 
         val results = converter.elementsToKotlin(
             fileList.map { it.second }, EmptyPostProcessor, null
