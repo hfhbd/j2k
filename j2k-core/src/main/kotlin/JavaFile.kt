@@ -8,7 +8,10 @@ public class JavaFile(
     @Language("java") public val content: CharSequence
 ) {
     public val fileName: String = packageName.replace(".", "/") + "/$name.java"
-
-    public var result: String? = null
-        internal set
 }
+
+public class KotlinFile(
+    public val name: String,
+    public val packageName: String,
+    @Language("kotlin") public val content: String,
+)

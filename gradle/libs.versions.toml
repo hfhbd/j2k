@@ -15,6 +15,12 @@ kotlin-core = { module = "org.jetbrains.kotlin:core", version.ref = "j2k"}
 kotlin-base-psi = { module = "org.jetbrains.kotlin:base-psi", version.ref = "j2k"}
 kotlin-base-indices = { module = "org.jetbrains.kotlin:base-indices", version.ref = "j2k"}
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
+kotlin-base-compiler-configuration = { module = "org.jetbrains.kotlin:base-compiler-configuration", version.ref = "j2k" }
+kotlin-base-plugin = { module = "org.jetbrains.kotlin:base-plugin", version.ref = "j2k" }
+kotlin-base-analysis = { module = "org.jetbrains.kotlin:base-analysis", version.ref = "j2k" }
+kotlin-base-fe10-analysis = { module = "org.jetbrains.kotlin:base-fe10-analysis", version.ref = "j2k" }
+kotlin-base-scripting = { module = "org.jetbrains.kotlin:base-scripting", version.ref = "j2k" }
+kotlin-base-project-structure = { module = "org.jetbrains.kotlin:base-project-structure", version.ref = "j2k" }
 
 java-impl = { module = "com.jetbrains.intellij.java:java-impl", version.ref = "idea" }
 java-analysis-impl = { module = "com.jetbrains.intellij.java:java-analysis-impl", version.ref = "idea" }
@@ -29,6 +35,8 @@ idea-util = { module = "com.jetbrains.intellij.platform:util", version.ref = "id
 intellij-testFramework = { module = "com.jetbrains.intellij.platform:test-framework", version.ref = "idea" }
 intellij-lang-impl = { module = "com.jetbrains.intellij.platform:lang-impl", version.ref = "idea" }
 intellij-editor = { module = "com.jetbrains.intellij.platform:editor", version.ref = "idea" }
+
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.7.3" }
 
 [bundles]
 idea = ["idea-core-impl", "idea-project-model-impl", "idea-analysis-impl", "idea-indexing-impl", "intellij-lang-impl"]
