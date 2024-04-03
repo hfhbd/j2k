@@ -1,9 +1,13 @@
 [versions]
-kotlin = "1.8.21"
-idea = "222.4167.29"
-j2k = "222-1.8.21-release-380-IJ4167.29"
+kotlin = "1.9.23"
+# https://www.jetbrains.com/intellij-repository/releases
+idea = "231.8109.175"
+# https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide/org/jetbrains/kotlin/j2k-new/
+j2k = "231-1.9.20-506-IJ8109.175"
 
 [libraries]
+kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-gradle-plugins-bom", version.ref = "kotlin" }
+
 j2k-new = { module = "org.jetbrains.kotlin:j2k-new", version.ref = "j2k" }
 j2k-old = { module = "org.jetbrains.kotlin:j2k-old", version.ref = "j2k" }
 

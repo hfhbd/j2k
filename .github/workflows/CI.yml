@@ -20,10 +20,9 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'adopt'
-          java-version: 17
-      - uses: gradle/gradle-build-action@v2
+          java-version: 21
+      - uses: gradle/action/setup-gradle@v3
         with:
-          dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
       - run: ./gradlew assemble compileTestKotlin
       - name: Build with Gradle

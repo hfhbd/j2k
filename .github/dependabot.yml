@@ -12,7 +12,7 @@ registries:
   intellij-deps:
     type: maven-repository
     url: https://cache-redirector.jetbrains.com/intellij-dependencies
-  kotlin-ide-deps:
+  kotlin-ide:
     type: maven-repository
     url: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide
   kotlin-ide-deps:
