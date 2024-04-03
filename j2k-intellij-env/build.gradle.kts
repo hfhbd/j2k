@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    shadow(platform(libs.kotlin.bom))
     shadow(libs.bundles.idea)
     shadow(libs.j2k.new)
     shadow(libs.j2k.old)
