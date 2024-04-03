@@ -1,5 +1,3 @@
-import java.util.*
-
 plugins {
     id("java")
     id("maven-publish")
