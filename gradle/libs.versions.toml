@@ -1,7 +1,7 @@
 [versions]
 kotlin = "1.9.23"
 # https://www.jetbrains.com/intellij-repository/releases
-idea = "231.8109.175"
+idea = "241.14494.241"
 # https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide/org/jetbrains/kotlin/j2k-new/
 j2k = "231-1.9.20-506-IJ8109.175"
 
