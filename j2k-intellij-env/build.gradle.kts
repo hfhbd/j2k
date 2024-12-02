@@ -25,7 +25,7 @@ dependencies {
     shadow(libs.intellij.testFramework) {
         isTransitive = false
     }
-    shadow("org.jetbrains.kotlin:kotlin-tooling-core:1.9.20")
+    shadow("org.jetbrains.kotlin:kotlin-tooling-core:2.0.0")
     shadow("org.jetbrains.kotlin:kotlin-compiler-for-ide:1.9.20-506") {
         isTransitive = false
     }
