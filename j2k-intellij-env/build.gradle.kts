@@ -26,7 +26,7 @@ dependencies {
         isTransitive = false
     }
     shadow("org.jetbrains.kotlin:kotlin-tooling-core:1.9.20")
-    shadow("org.jetbrains.kotlin:kotlin-compiler-for-ide:1.9.20-506") {
+    shadow("org.jetbrains.kotlin:kotlin-compiler-for-ide:1.9.24-release-822") {
         isTransitive = false
     }
 }
